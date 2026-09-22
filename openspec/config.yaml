@@ -1,0 +1,52 @@
+schema: spec-driven
+
+context: |
+  项目：IceRecord（记账本），一个记录个人资产的 iOS App。
+
+  技术栈：Swift 6 toolchain / iOS 18.0+ / SwiftUI / Swift Charts / sqlite3（C API 薄封装）。
+  无第三方依赖。工程文件 IceRecord.xcodeproj 由 project.yml 经 xcodegen 生成，
+  新增源文件后需要重新执行 `xcodegen generate`。
+
+  目录约定：
+    IceRecord/App        入口与 Tab 结构
+    IceRecord/Models     领域模型与归并算法
+    IceRecord/Database   SQLite 封装与建表迁移
+    IceRecord/Store      AssetStore（@Observable，唯一数据源）
+    IceRecord/Sync       iCloud 同步（传输层抽象 + 文件实现）
+    IceRecord/Views      SwiftUI 视图
+    IceRecordTests       单元测试    IceRecordUITests  端到端测试
+
+  领域约定：
+    - 所有金额单位都是**万元**，数据库、模型、图表纵轴统一。
+    - 「自然日」指本地时区下的当天 00:00，用 yyyy-MM-dd 作为唯一键。
+    - 每日总资产是**存量**概念，归并到周 / 月 / 年时取桶内最后一次记录，不做平均或求和。
+
+  写作约定：
+    - 文档正文用中文；spec 的结构性标题（## ADDED Requirements / ### Requirement: /
+      #### Scenario: / - **WHEN** / - **THEN**）保持英文，因为 CLI 依赖这些关键字解析。
+    - 需求用「SHALL」表达强制约束，用「SHALL NOT」表达禁止行为。
+
+  验证约定：
+    - 构建与测试：xcodebuild test -project IceRecord.xcodeproj -scheme IceRecord \
+        -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4'
+    - 涉及同步的改动，即使传输层无法在真机验证，合并语义也必须被单元测试覆盖
+      （传输层已被 SyncTransport / CloudFileStore 两个协议抽象出来）。
+    - 真机 iCloud 往返属于无法自动化验证的部分，必须在 verification.md 中明确写出。
+
+  已知的坑（写规格与设计时不要重蹈）：
+    - 不要用 .chartPlotStyle 的 padding 给图表气泡腾空间：它只移动数据区，
+      纵轴刻度不动，会导致曲线整体偏移。
+    - 图表气泡不要用 .regularMaterial 当背景：深色环境下会变成黑底黑字。
+    - 不要在启动时自动写入示例数据：iCloud 数据是异步回灌的，必然造成重名重复。
+    - 所有跨进程 / 云服务等待都要设超时，否则界面会永久停在「同步中」。
+
+# Per-artifact rules (optional)
+rules:
+  proposal:
+    - 每个变更控制在新能力 + 修改能力合计不超过 10 个 delta；超出说明该拆成多个变更
+
+# Per-operation guidance (optional)
+operations:
+  archive:
+    guidance:
+      - 归档后检查 openspec/specs/ 下生成的 Purpose 是否还是 TBD 占位，是则补齐

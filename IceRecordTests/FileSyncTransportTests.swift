@@ -121,8 +121,8 @@ final class FileSyncTransportTests: XCTestCase {
         for name in files {
             let size = try XCTUnwrap(try makeStore().read(name)).count
             XCTAssertLessThan(size, 50_000, "\(name) 体积 \(size) 字节，单年文件应该很小")
+            print("一年 365 天快照 → \(name)：\(size) 字节")
         }
-        print("365 天快照 → \(files.joined(separator: "、"))")
     }
 
     // MARK: - 往返
