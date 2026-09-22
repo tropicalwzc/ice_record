@@ -1,0 +1,16 @@
+# Xcode / build
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+*.moved-aside
+
+# xcodegen 产物（由 project.yml 生成，需要时跑 `xcodegen generate`）
+# 保留 IceRecord.xcodeproj 方便直接打开，所以这里不忽略它。
+
+# macOS
+.DS_Store
+
+# 临时文件
+.tmpcache/

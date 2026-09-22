@@ -1,0 +1,716 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0817F2B9EE8284B69F660210 /* AmountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01541104DA0E406ADCF10CC6 /* AmountFormatter.swift */; };
+		11C5145D5B8B7A4F9B1B00C1 /* FileSyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA43BFC11FA289A6B7EFCE0B /* FileSyncTransport.swift */; };
+		16F01803964BFF7414D326C4 /* FileSyncTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2B7E6B2EB29C2C8D203F4E /* FileSyncTransportTests.swift */; };
+		18D35B85CF0498800D74CC91 /* SyncLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A2FA14B4B54D2258284570 /* SyncLog.swift */; };
+		1B253620984EC0CAA6D2DD33 /* SQLiteDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC6CD495CE99229ED5752BAE /* SQLiteDatabase.swift */; };
+		1FE88CC52B36A65DFBFDF137 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CA1B41E7E867812EB352C7 /* SyncEngine.swift */; };
+		257F3970962BFCE3E2822175 /* AppFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0D99DF2581C41354BF767 /* AppFlowUITests.swift */; };
+		291335597A2058683BADBB0D /* TrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73217B09069FD6231DC3CC8D /* TrendView.swift */; };
+		3C95784F967ADAD377B21B1F /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C9215F66C177C001A1E7F0 /* RootTabView.swift */; };
+		3EE02EDE1D555B48F7F9C904 /* StatsPeriod.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EAAA81FBC8EA1579104AEB /* StatsPeriod.swift */; };
+		3F369D6441A30C4B19CBAF47 /* AsyncTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC53394DA04A557457B74C40 /* AsyncTimeout.swift */; };
+		4AF08EB14D8C3D04E81F96BA /* AssetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C57B965EBF6E3EC08357F2 /* AssetsView.swift */; };
+		53F7D59F69C70CE536C12296 /* SyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E6CDEF3155E8647525685F /* SyncModels.swift */; };
+		544AF8CED55BAD845E90B43B /* AssetStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D85214E247AAD13A537914F /* AssetStoreTests.swift */; };
+		58087788E04790B992912960 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE2BA04E6EC0C43BD237278 /* AppDatabase.swift */; };
+		61A7FFE672176856D7FE309A /* TrendAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA9E8333FCC0E99742E0C1C /* TrendAggregator.swift */; };
+		6C42406CD9DAE36CD55B76A2 /* TrendPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2796E2392C096CBD7DC6ED52 /* TrendPoint.swift */; };
+		746905A700D07354A6A0A780 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FDBAA5F46106139C6D108DF /* libsqlite3.tbd */; };
+		7F9BF58A87AD320F333EA33F /* DayKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B7FF13377725D5A480F99D5 /* DayKey.swift */; };
+		852EB04827D7A13955C35B24 /* SyncFileLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B56640589C68AE8CA25471E /* SyncFileLayout.swift */; };
+		95F96AAF1E567B163FC19761 /* AssetEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC23077DB514EEBD8367F2F4 /* AssetEditorView.swift */; };
+		9E86D8C91325C89DF5A96F5D /* AssetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E76E1C440E7D5F09740105A /* AssetStore.swift */; };
+		A0A4A5569930C8598224BA04 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EBA02550AA155C36DBDC2D70 /* Assets.xcassets */; };
+		A479517EE7DECE6E9E354B0B /* SyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFD38081B20E7308F661BB14 /* SyncTransport.swift */; };
+		BB064154B92D6C2530624863 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47709C604FF4C5A902C7527 /* SyncCoordinator.swift */; };
+		CBF1BA250066F09ECC4A0724 /* AssetItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2749D0062A1FA60439657EF1 /* AssetItem.swift */; };
+		CC6F9DC4405E16DBF3419F5F /* AssetCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5316D88520BCE22D63ED079 /* AssetCategory.swift */; };
+		D2E00628B9BBDBBB1B299F6B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D72659BFD0DFF6F2C0F3C387 /* SettingsView.swift */; };
+		DF2CA7E5AAD26552D49E3323 /* AssetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08284B3963636E71F2AEF025 /* AssetSnapshot.swift */; };
+		E002D24DEDE21EBD219CD1C1 /* SyncEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9557255C4291E1517C02454C /* SyncEngineTests.swift */; };
+		EC938E6430662E7A7B08B2D9 /* IceRecordApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95FC8CEABEAD032BFE60D160 /* IceRecordApp.swift */; };
+		FA80801A99991A65A0C955B0 /* TrendAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948B1DE52CAB31FD09877848 /* TrendAggregatorTests.swift */; };
+		FE7D0D35C6B643314E4DF2A0 /* CloudFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE7A0A860151B9C1B995845 /* CloudFileStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		090562528CD61629D559EEAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9A29F36A212572CAFDE91D2F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B4679FB95C6EB31FF1865964;
+			remoteInfo = IceRecord;
+		};
+		171D31D5DBF8CFA716D9887F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9A29F36A212572CAFDE91D2F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B4679FB95C6EB31FF1865964;
+			remoteInfo = IceRecord;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01541104DA0E406ADCF10CC6 /* AmountFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmountFormatter.swift; sourceTree = "<group>"; };
+		08284B3963636E71F2AEF025 /* AssetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetSnapshot.swift; sourceTree = "<group>"; };
+		0AA9E8333FCC0E99742E0C1C /* TrendAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendAggregator.swift; sourceTree = "<group>"; };
+		1B7FF13377725D5A480F99D5 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
+		1E76E1C440E7D5F09740105A /* AssetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetStore.swift; sourceTree = "<group>"; };
+		1F2B7E6B2EB29C2C8D203F4E /* FileSyncTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSyncTransportTests.swift; sourceTree = "<group>"; };
+		24C9215F66C177C001A1E7F0 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		26AC701204313D7D809FE198 /* IceRecord.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IceRecord.entitlements; sourceTree = "<group>"; };
+		2749D0062A1FA60439657EF1 /* AssetItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetItem.swift; sourceTree = "<group>"; };
+		2796E2392C096CBD7DC6ED52 /* TrendPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendPoint.swift; sourceTree = "<group>"; };
+		27CA1B41E7E867812EB352C7 /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
+		2D85214E247AAD13A537914F /* AssetStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetStoreTests.swift; sourceTree = "<group>"; };
+		3BA0D99DF2581C41354BF767 /* AppFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowUITests.swift; sourceTree = "<group>"; };
+		40E8AF07C8580F6FDBFE77D5 /* IceRecordTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = IceRecordTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E6CDEF3155E8647525685F /* SyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncModels.swift; sourceTree = "<group>"; };
+		670218E8E00DE9439729DA90 /* IceRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IceRecord.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		68C57B965EBF6E3EC08357F2 /* AssetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetsView.swift; sourceTree = "<group>"; };
+		73217B09069FD6231DC3CC8D /* TrendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendView.swift; sourceTree = "<group>"; };
+		7FDBAA5F46106139C6D108DF /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		8B56640589C68AE8CA25471E /* SyncFileLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncFileLayout.swift; sourceTree = "<group>"; };
+		8BE7A0A860151B9C1B995845 /* CloudFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudFileStore.swift; sourceTree = "<group>"; };
+		948B1DE52CAB31FD09877848 /* TrendAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendAggregatorTests.swift; sourceTree = "<group>"; };
+		9557255C4291E1517C02454C /* SyncEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngineTests.swift; sourceTree = "<group>"; };
+		95FC8CEABEAD032BFE60D160 /* IceRecordApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IceRecordApp.swift; sourceTree = "<group>"; };
+		A5316D88520BCE22D63ED079 /* AssetCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCategory.swift; sourceTree = "<group>"; };
+		ABE2BA04E6EC0C43BD237278 /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		AC53394DA04A557457B74C40 /* AsyncTimeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTimeout.swift; sourceTree = "<group>"; };
+		B9A2FA14B4B54D2258284570 /* SyncLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLog.swift; sourceTree = "<group>"; };
+		CFD38081B20E7308F661BB14 /* SyncTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTransport.swift; sourceTree = "<group>"; };
+		D4EAAA81FBC8EA1579104AEB /* StatsPeriod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPeriod.swift; sourceTree = "<group>"; };
+		D72659BFD0DFF6F2C0F3C387 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		DC23077DB514EEBD8367F2F4 /* AssetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetEditorView.swift; sourceTree = "<group>"; };
+		DC99127AF059E335F9686B73 /* IceRecordUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = IceRecordUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA43BFC11FA289A6B7EFCE0B /* FileSyncTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSyncTransport.swift; sourceTree = "<group>"; };
+		EBA02550AA155C36DBDC2D70 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F47709C604FF4C5A902C7527 /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
+		FC6CD495CE99229ED5752BAE /* SQLiteDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteDatabase.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3A6BF4DECF8CD5292C26EE57 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				746905A700D07354A6A0A780 /* libsqlite3.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2355B2205DDABE7D023F4607 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A5316D88520BCE22D63ED079 /* AssetCategory.swift */,
+				2749D0062A1FA60439657EF1 /* AssetItem.swift */,
+				08284B3963636E71F2AEF025 /* AssetSnapshot.swift */,
+				D4EAAA81FBC8EA1579104AEB /* StatsPeriod.swift */,
+				0AA9E8333FCC0E99742E0C1C /* TrendAggregator.swift */,
+				2796E2392C096CBD7DC6ED52 /* TrendPoint.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		267EB13348204164BB02CE44 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				01541104DA0E406ADCF10CC6 /* AmountFormatter.swift */,
+				AC53394DA04A557457B74C40 /* AsyncTimeout.swift */,
+				1B7FF13377725D5A480F99D5 /* DayKey.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		3D489E161BA03F25BC3D33C3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7FDBAA5F46106139C6D108DF /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3F53F8E496FEB452C1D41950 /* IceRecord */ = {
+			isa = PBXGroup;
+			children = (
+				FDE1A5D4ADCDA62A4D780F6D /* App */,
+				C0884701DD20D1C33DAD944A /* Database */,
+				2355B2205DDABE7D023F4607 /* Models */,
+				7DBB97209567FCD746F05C4D /* Store */,
+				267EB13348204164BB02CE44 /* Support */,
+				6A338668EF55B3872A7F5E2A /* Sync */,
+				BCF523D26E01E8C889D50712 /* Views */,
+				EBA02550AA155C36DBDC2D70 /* Assets.xcassets */,
+				26AC701204313D7D809FE198 /* IceRecord.entitlements */,
+			);
+			path = IceRecord;
+			sourceTree = "<group>";
+		};
+		6A338668EF55B3872A7F5E2A /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				8BE7A0A860151B9C1B995845 /* CloudFileStore.swift */,
+				EA43BFC11FA289A6B7EFCE0B /* FileSyncTransport.swift */,
+				F47709C604FF4C5A902C7527 /* SyncCoordinator.swift */,
+				27CA1B41E7E867812EB352C7 /* SyncEngine.swift */,
+				8B56640589C68AE8CA25471E /* SyncFileLayout.swift */,
+				B9A2FA14B4B54D2258284570 /* SyncLog.swift */,
+				65E6CDEF3155E8647525685F /* SyncModels.swift */,
+				CFD38081B20E7308F661BB14 /* SyncTransport.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		7DBB97209567FCD746F05C4D /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				1E76E1C440E7D5F09740105A /* AssetStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		91868AB1354346003608D975 = {
+			isa = PBXGroup;
+			children = (
+				3F53F8E496FEB452C1D41950 /* IceRecord */,
+				9F297B6F02B20DA3B6BF30D5 /* IceRecordTests */,
+				EF4003BFC7A92C1EC41A15F4 /* IceRecordUITests */,
+				3D489E161BA03F25BC3D33C3 /* Frameworks */,
+				D644D461B46E44FFC795D051 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9F297B6F02B20DA3B6BF30D5 /* IceRecordTests */ = {
+			isa = PBXGroup;
+			children = (
+				2D85214E247AAD13A537914F /* AssetStoreTests.swift */,
+				1F2B7E6B2EB29C2C8D203F4E /* FileSyncTransportTests.swift */,
+				9557255C4291E1517C02454C /* SyncEngineTests.swift */,
+				948B1DE52CAB31FD09877848 /* TrendAggregatorTests.swift */,
+			);
+			path = IceRecordTests;
+			sourceTree = "<group>";
+		};
+		BCF523D26E01E8C889D50712 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				DC23077DB514EEBD8367F2F4 /* AssetEditorView.swift */,
+				68C57B965EBF6E3EC08357F2 /* AssetsView.swift */,
+				D72659BFD0DFF6F2C0F3C387 /* SettingsView.swift */,
+				73217B09069FD6231DC3CC8D /* TrendView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C0884701DD20D1C33DAD944A /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				ABE2BA04E6EC0C43BD237278 /* AppDatabase.swift */,
+				FC6CD495CE99229ED5752BAE /* SQLiteDatabase.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
+		D644D461B46E44FFC795D051 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				670218E8E00DE9439729DA90 /* IceRecord.app */,
+				40E8AF07C8580F6FDBFE77D5 /* IceRecordTests.xctest */,
+				DC99127AF059E335F9686B73 /* IceRecordUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		EF4003BFC7A92C1EC41A15F4 /* IceRecordUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3BA0D99DF2581C41354BF767 /* AppFlowUITests.swift */,
+			);
+			path = IceRecordUITests;
+			sourceTree = "<group>";
+		};
+		FDE1A5D4ADCDA62A4D780F6D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				95FC8CEABEAD032BFE60D160 /* IceRecordApp.swift */,
+				24C9215F66C177C001A1E7F0 /* RootTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		63746BD93503594136268EFD /* IceRecordTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 52F04F5A21DE167E7E194927 /* Build configuration list for PBXNativeTarget "IceRecordTests" */;
+			buildPhases = (
+				E146247C9D279349710D70C9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C3B2149B33F1A392A00E01DC /* PBXTargetDependency */,
+			);
+			name = IceRecordTests;
+			productName = IceRecordTests;
+			productReference = 40E8AF07C8580F6FDBFE77D5 /* IceRecordTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B4679FB95C6EB31FF1865964 /* IceRecord */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5DE6B8098CA7DB7360B5CC74 /* Build configuration list for PBXNativeTarget "IceRecord" */;
+			buildPhases = (
+				59BEBADF20469A4098BD5111 /* Sources */,
+				572ED579C37A2234A3B53E06 /* Resources */,
+				3A6BF4DECF8CD5292C26EE57 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IceRecord;
+			productName = IceRecord;
+			productReference = 670218E8E00DE9439729DA90 /* IceRecord.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D8246BEDEEA194AA4DB8EB1C /* IceRecordUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5403307924642AF80008306A /* Build configuration list for PBXNativeTarget "IceRecordUITests" */;
+			buildPhases = (
+				CE62E5188018A16BF18DDB93 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15A99D8851367CD013781BD3 /* PBXTargetDependency */,
+			);
+			name = IceRecordUITests;
+			productName = IceRecordUITests;
+			productReference = DC99127AF059E335F9686B73 /* IceRecordUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9A29F36A212572CAFDE91D2F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					B4679FB95C6EB31FF1865964 = {
+						ProvisioningStyle = Automatic;
+					};
+					D8246BEDEEA194AA4DB8EB1C = {
+						TestTargetID = B4679FB95C6EB31FF1865964;
+					};
+				};
+			};
+			buildConfigurationList = 1B58E7FF69F0D424999E4606 /* Build configuration list for PBXProject "IceRecord" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 91868AB1354346003608D975;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B4679FB95C6EB31FF1865964 /* IceRecord */,
+				63746BD93503594136268EFD /* IceRecordTests */,
+				D8246BEDEEA194AA4DB8EB1C /* IceRecordUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		572ED579C37A2234A3B53E06 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0A4A5569930C8598224BA04 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		59BEBADF20469A4098BD5111 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0817F2B9EE8284B69F660210 /* AmountFormatter.swift in Sources */,
+				58087788E04790B992912960 /* AppDatabase.swift in Sources */,
+				CC6F9DC4405E16DBF3419F5F /* AssetCategory.swift in Sources */,
+				95F96AAF1E567B163FC19761 /* AssetEditorView.swift in Sources */,
+				CBF1BA250066F09ECC4A0724 /* AssetItem.swift in Sources */,
+				DF2CA7E5AAD26552D49E3323 /* AssetSnapshot.swift in Sources */,
+				9E86D8C91325C89DF5A96F5D /* AssetStore.swift in Sources */,
+				4AF08EB14D8C3D04E81F96BA /* AssetsView.swift in Sources */,
+				3F369D6441A30C4B19CBAF47 /* AsyncTimeout.swift in Sources */,
+				FE7D0D35C6B643314E4DF2A0 /* CloudFileStore.swift in Sources */,
+				7F9BF58A87AD320F333EA33F /* DayKey.swift in Sources */,
+				11C5145D5B8B7A4F9B1B00C1 /* FileSyncTransport.swift in Sources */,
+				EC938E6430662E7A7B08B2D9 /* IceRecordApp.swift in Sources */,
+				3C95784F967ADAD377B21B1F /* RootTabView.swift in Sources */,
+				1B253620984EC0CAA6D2DD33 /* SQLiteDatabase.swift in Sources */,
+				D2E00628B9BBDBBB1B299F6B /* SettingsView.swift in Sources */,
+				3EE02EDE1D555B48F7F9C904 /* StatsPeriod.swift in Sources */,
+				BB064154B92D6C2530624863 /* SyncCoordinator.swift in Sources */,
+				1FE88CC52B36A65DFBFDF137 /* SyncEngine.swift in Sources */,
+				852EB04827D7A13955C35B24 /* SyncFileLayout.swift in Sources */,
+				18D35B85CF0498800D74CC91 /* SyncLog.swift in Sources */,
+				53F7D59F69C70CE536C12296 /* SyncModels.swift in Sources */,
+				A479517EE7DECE6E9E354B0B /* SyncTransport.swift in Sources */,
+				61A7FFE672176856D7FE309A /* TrendAggregator.swift in Sources */,
+				6C42406CD9DAE36CD55B76A2 /* TrendPoint.swift in Sources */,
+				291335597A2058683BADBB0D /* TrendView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE62E5188018A16BF18DDB93 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				257F3970962BFCE3E2822175 /* AppFlowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E146247C9D279349710D70C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				544AF8CED55BAD845E90B43B /* AssetStoreTests.swift in Sources */,
+				16F01803964BFF7414D326C4 /* FileSyncTransportTests.swift in Sources */,
+				E002D24DEDE21EBD219CD1C1 /* SyncEngineTests.swift in Sources */,
+				FA80801A99991A65A0C955B0 /* TrendAggregatorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		15A99D8851367CD013781BD3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B4679FB95C6EB31FF1865964 /* IceRecord */;
+			targetProxy = 171D31D5DBF8CFA716D9887F /* PBXContainerItemProxy */;
+		};
+		C3B2149B33F1A392A00E01DC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B4679FB95C6EB31FF1865964 /* IceRecord */;
+			targetProxy = 090562528CD61629D559EEAB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0FAA3351B3F87F956BE73119 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IceRecord;
+			};
+			name = Debug;
+		};
+		12F6EC108F709CC5A41869DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IceRecord;
+			};
+			name = Release;
+		};
+		2CBE6D42A365956C0E073F4C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4A60A44B10D64D0E635191D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		940AC49F8EF5C565E0283BF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IceRecord.app/IceRecord";
+			};
+			name = Release;
+		};
+		A491D79FE1610CAD8969D72F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = IceRecord/IceRecord.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39R699SCD9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IceRecord/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app;
+				PRODUCT_NAME = IceRecord;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B68CE781FF26902B85F6DE87 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = IceRecord/IceRecord.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39R699SCD9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IceRecord/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app;
+				PRODUCT_NAME = IceRecord;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CE92DA483B36CB240A831263 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.icerecord.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IceRecord.app/IceRecord";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B58E7FF69F0D424999E4606 /* Build configuration list for PBXProject "IceRecord" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A60A44B10D64D0E635191D0 /* Debug */,
+				2CBE6D42A365956C0E073F4C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		52F04F5A21DE167E7E194927 /* Build configuration list for PBXNativeTarget "IceRecordTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE92DA483B36CB240A831263 /* Debug */,
+				940AC49F8EF5C565E0283BF6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5403307924642AF80008306A /* Build configuration list for PBXNativeTarget "IceRecordUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FAA3351B3F87F956BE73119 /* Debug */,
+				12F6EC108F709CC5A41869DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5DE6B8098CA7DB7360B5CC74 /* Build configuration list for PBXNativeTarget "IceRecord" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A491D79FE1610CAD8969D72F /* Debug */,
+				B68CE781FF26902B85F6DE87 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9A29F36A212572CAFDE91D2F /* Project object */;
+}

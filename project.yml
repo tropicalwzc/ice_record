@@ -1,0 +1,120 @@
+name: IceRecord
+
+options:
+  bundleIdPrefix: com.icerecord
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    CLANG_ENABLE_MODULES: YES
+
+targets:
+  IceRecord:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: IceRecord
+        excludes:
+          - "Info.plist"
+    dependencies:
+      - sdk: libsqlite3.tbd
+    info:
+      path: IceRecord/Info.plist
+      properties:
+        CFBundleDisplayName: 记账本
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.finance
+        ITSAppUsesNonExemptEncryption: false
+        UIApplicationSupportsIndirectInputEvents: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: IceRecord/IceRecord.entitlements
+      properties:
+        # 这套配置和 ice reader 项目里验证过能用的保持一致：
+        # 用 iCloud 键值存储（在 CloudDocuments 能力下），容器数组留空走默认容器。
+        com.apple.developer.icloud-services:
+          - CloudDocuments
+        com.apple.developer.icloud-container-identifiers: []
+        com.apple.developer.ubiquity-container-identifiers: []
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+    settings:
+      base:
+        PRODUCT_NAME: IceRecord
+        PRODUCT_BUNDLE_IDENTIFIER: com.icerecord.app
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_APPROACHABLE_CONCURRENCY: YES
+        SWIFT_STRICT_CONCURRENCY: minimal
+        CODE_SIGN_STYLE: Automatic
+        # ↓↓↓ 换成你自己的 Team ID（在 developer.apple.com 的 Membership 页面看）
+        # 已经填好就可以直接真机运行；留空也能跑模拟器（iCloud 不可用）
+        DEVELOPMENT_TEAM: ""
+
+  IceRecordTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: IceRecordTests
+    dependencies:
+      - target: IceRecord
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.icerecord.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+
+  IceRecordUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: IceRecordUITests
+    dependencies:
+      - target: IceRecord
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.icerecord.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+        TEST_TARGET_NAME: IceRecord
+
+schemes:
+  IceRecord:
+    build:
+      targets:
+        IceRecord: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - IceRecordTests
+        - IceRecordUITests
