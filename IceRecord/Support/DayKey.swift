@@ -54,6 +54,11 @@ enum DateDisplay {
         date.formatted(.dateTime.year().month().locale(locale))
     }
 
+    /// 3月
+    static func month(_ date: Date) -> String {
+        date.formatted(.dateTime.month().locale(locale))
+    }
+
     /// 2026年
     static func year(_ date: Date) -> String {
         date.formatted(.dateTime.year().locale(locale))

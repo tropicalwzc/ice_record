@@ -7,8 +7,11 @@ struct TrendView: View {
     @Environment(AssetStore.self) private var store
 
     @State private var period: StatsPeriod = .day
+
     @State private var selectedDate: Date?
     @State private var showAllHistory = false
+    /// 图表实际宽度，用来决定横轴放几个日期刻度
+    @State private var chartWidth: CGFloat = 0
 
     private let collapsedHistoryCount = 30
 
@@ -88,6 +91,8 @@ struct TrendView: View {
 
     @ViewBuilder
     private func chart(_ points: [TrendPoint]) -> some View {
+        let tickDates = xAxisDates(points)
+
         Chart {
             ForEach(points) { point in
                 AreaMark(
@@ -148,9 +153,17 @@ struct TrendView: View {
         .chartXScale(domain: xDomain(points))
         .chartYScale(domain: yDomain(points))
         .chartXAxis {
-            AxisMarks(preset: .extended, values: xAxisValues(points)) { _ in
+            // 刻度日期自己算（见 xAxisDates / TrendAxis）：按时间等距，且不落在数据范围之外，
+            // 不会出现系统自动生成刻度被挤到边缘后互相重叠、被截断的情况。
+            AxisMarks(values: tickDates) { value in
                 AxisGridLine().foregroundStyle(Color.secondary.opacity(0.15))
-                AxisValueLabel(format: period.axisFormat)
+                if let date = value.as(Date.self) {
+                    // 关掉系统自带的「碰撞处理」：它会按自己的判断把贴边的日期截成省略号
+                    // （实测 18.4 / 26 上末位日期被截成「1…」）。间距由 TrendAxis 按真实文字宽度保证。
+                    AxisValueLabel(collisionResolution: .disabled) {
+                        axisLabelText(for: date, in: tickDates)
+                    }
+                }
             }
         }
         .chartYAxis {
@@ -160,7 +173,101 @@ struct TrendView: View {
             }
         }
         .chartXSelection(value: $selectedDate)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { width in
+            chartWidth = width
+        }
         .accessibilityIdentifier("trendChart")
+    }
+
+    /// 横轴刻度对应的日期：在首尾数据点之间按**时间**等距取，
+    /// 再用**渲染时同一套字体量出来的文字宽度**收敛数量（见 TrendAxis.fittingTickDates）。
+    private func xAxisDates(_ points: [TrendPoint]) -> [Date] {
+        guard let first = points.first?.date, let last = points.last?.date else { return [] }
+        return TrendAxis.fittingTickDates(
+            from: first,
+            to: last,
+            edgePadding: xAxisEdgePadding(points),
+            period: period,
+            limit: maxAxisTickCount,
+            plotWidth: plotWidth,
+            minimumGap: Self.axisLabelMinimumGap,
+            labelWidth: axisLabelWidth
+        )
+    }
+
+    /// 绘图区宽度：图表总宽扣掉左侧纵轴标签占的一截。
+    ///
+    /// 纵轴标签可能比较宽（「211.5」这种 5 位数），这里按偏小的值估算：
+    /// 估小了只会让日期刻度少放一个、往中间收一点，都不会叠字；
+    /// 估大了才会把标签顶到绘图区外面被截断。
+    private var plotWidth: CGFloat {
+        max(chartWidth - 64, 0)
+    }
+
+    /// 刻度数量的上界，实际数量由 TrendAxis 按文字宽度收敛。
+    private var maxAxisTickCount: Int {
+        min(5, max(2, Int(plotWidth / 56)))
+    }
+
+    // MARK: - 横轴标签量宽
+
+    static let axisLabelFontSize: CGFloat = 11
+    /// 相邻两个日期刻度之间至少要留出的空隙
+    static let axisLabelMinimumGap: CGFloat = 14
+
+    /// 和 AxisValueLabel 里渲染用的字体保持一致，量出来的宽度才是真的
+    private static let axisLabelFont: UIFont = {
+        let base = UIFont.systemFont(ofSize: axisLabelFontSize, weight: .semibold)
+        var descriptor = base.fontDescriptor
+        if let rounded = descriptor.withDesign(.rounded) {
+            descriptor = rounded
+        }
+        descriptor = descriptor.addingAttributes([
+            .featureSettings: [[
+                UIFontDescriptor.FeatureKey.type: kNumberSpacingType,
+                UIFontDescriptor.FeatureKey.selector: kMonospacedNumbersSelector
+            ]]
+        ])
+        return UIFont(descriptor: descriptor, size: axisLabelFontSize)
+    }()
+
+    private func axisLabelWidth(_ text: String) -> CGFloat {
+        ceil((text as NSString).size(withAttributes: [.font: Self.axisLabelFont]).width)
+    }
+
+    /// 横轴刻度文字。
+    ///
+    /// 一律**居中**放在刻度上，刻意不碰 `AxisValueLabel(anchor:)`：
+    /// 不同 iOS 版本对 anchor 的解释不一样（同一份代码在 iOS 18 / 26 上居中，
+    /// 在 iOS 27 上变成左对齐，末尾两个日期就直接叠在一起——实测「10月1日」压在「9月28日」上）。
+    /// 贴边那半个字宽的位置，改由 x 轴两端的时间留白让出来（见 `xAxisEdgePadding`）。
+    private func axisLabelText(for date: Date, in dates: [Date]) -> some View {
+        Text(TrendAxis.label(for: period, on: date, isRangeStart: date == dates.first))
+            .font(.system(size: Self.axisLabelFontSize, weight: .semibold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
+    }
+
+    /// 首尾日期在绘图区两端各留出的时间白边：正好让「居中的整字标签」落进绘图区。
+    private func xAxisEdgePadding(_ points: [TrendPoint]) -> TimeInterval {
+        guard let first = points.first?.date, let last = points.last?.date, first < last else { return 0 }
+
+        let span = last.timeIntervalSince(first)
+        let halfLabel = axisEdgeHalfWidth(points)
+        guard plotWidth > halfLabel * 2 + 1 else { return span * TrendAxis.domainPaddingRatio }
+
+        // 解 halfLabel / plotWidth = padding / (span + 2 * padding)
+        return halfLabel * span / (plotWidth - halfLabel * 2)
+    }
+
+    /// 首尾刻度标签的半个宽度（取两者较宽的那个，月粒度可能带年份）。
+    /// 多留 8pt：坐标轴标签区比绘图区略窄，留一点富余免得贴边日期被顶出去。
+    private func axisEdgeHalfWidth(_ points: [TrendPoint]) -> CGFloat {
+        let firstLabel = TrendAxis.label(for: period, on: points.first?.date ?? .now, isRangeStart: true)
+        let lastLabel = TrendAxis.label(for: period, on: points.last?.date ?? .now, isRangeStart: false)
+        return max(axisLabelWidth(firstLabel), axisLabelWidth(lastLabel)) / 2 + 8
     }
 
     /// 选中的点画在绘图区上半部分时，气泡朝下弹；否则朝上弹。
@@ -214,17 +321,6 @@ struct TrendView: View {
         }
     }
 
-    private func xAxisValues(_ points: [TrendPoint]) -> AxisMarkValues {
-        switch period {
-        case .day, .week, .month:
-            return .automatic(desiredCount: 4)
-        case .year:
-            // 按整年分刻度，避免同一年被标成多个重复的 "yyyy"
-            let years = Set(points.map { DayKey.calendar.component(.year, from: $0.date) }).count
-            return .stride(by: .year, count: years > 6 ? 2 : 1)
-        }
-    }
-
     private func xDomain(_ points: [TrendPoint]) -> ClosedRange<Date> {
         guard let first = points.first?.date, let last = points.last?.date else {
             let now = Date()
@@ -235,7 +331,9 @@ struct TrendView: View {
             let half = singlePointSpan / 2
             return first.addingTimeInterval(-half)...last.addingTimeInterval(half)
         }
-        let padding = last.timeIntervalSince(first) * 0.03
+        // 两端留白和 TrendAxis 里算刻度位置时用的是同一个值：
+        // 半个标签宽，保证居中的首尾日期完整落在绘图区内
+        let padding = xAxisEdgePadding(points)
         return first.addingTimeInterval(-padding)...last.addingTimeInterval(padding)
     }
 

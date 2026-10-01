@@ -606,7 +606,7 @@
 				CODE_SIGN_ENTITLEMENTS = IceRecord/IceRecord.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 39R699SCD9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IceRecord/Info.plist;
@@ -633,7 +633,7 @@
 				CODE_SIGN_ENTITLEMENTS = IceRecord/IceRecord.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 39R699SCD9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IceRecord/Info.plist;
