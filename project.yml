@@ -54,10 +54,15 @@ targets:
       properties:
         # 这套配置和 ice reader 项目里验证过能用的保持一致：
         # 用 iCloud 键值存储（在 CloudDocuments 能力下），容器数组留空走默认容器。
+        # 注意：这里必须写出真实的容器 id。留空数组时 xcodegen 会把 entitlements 里
+        # 已有的 `iCloud.com.icerecord.app` 覆盖成空数组，真机 iCloud 同步就落到默认容器上
+        # ——每次「新增源文件后重新 generate」都会静默丢一次配置。
         com.apple.developer.icloud-services:
           - CloudDocuments
-        com.apple.developer.icloud-container-identifiers: []
-        com.apple.developer.ubiquity-container-identifiers: []
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.icerecord.app
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.com.icerecord.app
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
     settings:
       base:

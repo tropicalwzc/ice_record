@@ -48,6 +48,24 @@ enum AmountFormatter {
         "\(signPrefix(value))\(number(abs(value), digits: 2))%"
     }
 
+    /// 纵轴刻度用的整数文本：`211.5` → `212`，`0.4` → `0`
+    ///
+    /// 纵轴只承担「定位」，精度由长按气泡和下方的幅度列表负责。
+    /// 带小数会让纵轴标签宽出七八个点，那点宽度是从绘图区身上割的。
+    static func axisInteger(_ value: Double) -> String {
+        number(value.rounded(), digits: 0)
+    }
+
+    /// 纵轴刻度文案：步长够大就用整数；只有变化量小到零点几万时才保留一位小数
+    /// （那种量级下强行取整，整根轴上只会剩一根「0」，等于没有刻度）。
+    /// 小数步长下整数值仍然写成整数，避免一排「19.0 / 19.5 / 20.0」里混着没意义的 .0。
+    static func axisTick(_ value: Double, step: Double) -> String {
+        if step >= 1 || value == value.rounded() {
+            return axisInteger(value)
+        }
+        return number(value, digits: 1)
+    }
+
     private static func signPrefix(_ value: Double) -> String {
         if value > 0 { return "+" }
         if value < 0 { return "-" }

@@ -255,4 +255,70 @@ final class AssetStoreTests: XCTestCase {
         XCTAssertEqual(totals.first?.category, .stock)
         XCTAssertEqual(totals.first?.amount ?? 0, 10.5, accuracy: 0.000_001)
     }
+
+    // MARK: - 分类小计
+
+    /// 每次改动都要连带把当天的 7 个类别写进快照，且合计等于总额
+    @MainActor
+    func testSnapshotRecordsCategoryBreakdown() throws {
+        let database = try makeDatabase()
+        let store = makeSeededStore(database)
+
+        let breakdown = try XCTUnwrap(store.todaySnapshot?.categories)
+        XCTAssertEqual(breakdown.count, AssetCategory.allCases.count, "7 个类别全量写，含 0")
+        XCTAssertEqual(breakdown[.stock] ?? -1, 10.5, accuracy: 0.000_001)
+        XCTAssertEqual(breakdown[.cash] ?? -1, 1.3, accuracy: 0.000_001)
+        XCTAssertEqual(breakdown[.fund], 0, "没有基金的条目，也要写成 0")
+        XCTAssertEqual(breakdown.values.reduce(0, +), store.totalAmount, accuracy: 0.000_001)
+    }
+
+    /// 改一个类别，当日分类小计跟着变；同一天不会累加
+    @MainActor
+    func testEditingItemUpdatesCategoryBreakdown() throws {
+        let database = try makeDatabase()
+        let store = makeSeededStore(database)
+        let stock = try XCTUnwrap(store.items.first { $0.category == .stock })
+
+        store.updateItem(id: stock.id, name: stock.name, amount: 9.0, category: .stock, note: "")
+
+        let breakdown = try XCTUnwrap(store.todaySnapshot?.categories)
+        XCTAssertEqual(breakdown[.stock] ?? -1, 9.0, accuracy: 0.000_001)
+        XCTAssertEqual(breakdown.values.reduce(0, +), store.todaySnapshot?.totalAmount ?? -1, accuracy: 0.000_001)
+    }
+
+    /// 把某个类别的条目全部删掉后，该类别当天记 0 而不是留空
+    @MainActor
+    func testDeletingLastItemOfCategoryWritesZero() throws {
+        let database = try makeDatabase()
+        let store = makeSeededStore(database)
+        store.addItem(name: "沪深300", amount: 2, category: .fund)
+
+        let fundItems = store.items.filter { $0.category == .fund }
+        store.deleteItems(withIDs: fundItems.map(\.id))
+
+        let breakdown = try XCTUnwrap(store.todaySnapshot?.categories)
+        XCTAssertEqual(breakdown[.fund], 0, "清空后要落回 0，这条曲线才不会断在半空")
+    }
+
+    /// 分类明细的起点：没有明细的日子不算，第一条带明细的快照才是起点。
+    /// 界面靠它解释「为什么分类曲线比总资产短」。
+    @MainActor
+    func testCategoryTrackingStartDayFollowsFirstSnapshotWithDetail() throws {
+        let database = try makeDatabase()
+        let twoDaysAgo = try XCTUnwrap(
+            DayKey.calendar.date(byAdding: .day, value: -2, to: DayKey.startOfDay(.now))
+        )
+        // 分类上线前的老快照：只有总额，没有明细
+        try database.upsertSnapshot(day: twoDaysAgo, totalAmount: 5, itemCount: 1)
+
+        let store = AssetStore(database: database)
+        XCTAssertNil(store.categoryTrackingStartDay, "一条明细都没有时就没有起点可报")
+
+        store.addItem(name: "股票", amount: 1, category: .stock)
+        XCTAssertEqual(
+            store.categoryTrackingStartDay.map { DayKey.string(from: $0) },
+            DayKey.string(from: DayKey.startOfDay(.now)),
+            "起点应是第一条带明细的快照，而不是最早那条只有总额的"
+        )
+    }
 }

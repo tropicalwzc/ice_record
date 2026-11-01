@@ -8,6 +8,8 @@ struct SyncOutcome: Equatable, Sendable {
     var applied: Int = 0
     /// 有记录被云端拒绝时的说明（不阻断整轮同步，但要让用户看见）
     var pushFailureSummary: String?
+    /// 有远端记录被本地拒绝时的说明（例如快照自相矛盾）。同样不阻断整轮同步。
+    var applyFailureSummary: String?
     var didChangeLocalData: Bool { applied > 0 }
 
     static let skipped = SyncOutcome()
@@ -98,12 +100,24 @@ final class SyncEngine {
 
         // 3. 合并（last-writer-wins）
         var applied = 0
+        var rejected: [String] = []
         for record in pull.records {
-            if try database.applyRemote(record) {
-                applied += 1
+            do {
+                if try database.applyRemote(record) {
+                    applied += 1
+                }
+            } catch {
+                // 单条记录不可信（例如分类合计与总额对不上）时跳过它，
+                // 不能因为一条坏数据让整轮同步失败、把后续好数据一起卡住。
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                SyncLog.error("跳过云端记录 \(record.name)：\(message)")
+                rejected.append(message)
             }
         }
         outcome.applied = applied
+        if !rejected.isEmpty {
+            outcome.applyFailureSummary = rejected.joined(separator: "\n")
+        }
 
         // 4. 整轮都成功了才推进索引，避免中途失败漏数据
         if let newToken = pull.newToken {

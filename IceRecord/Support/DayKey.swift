@@ -78,4 +78,27 @@ enum DateDisplay {
                 .locale(locale)
         )
     }
+
+    // MARK: - 数字族（图表横轴用）
+
+    /// 11-01
+    ///
+    /// 手工拼而不是用 `Date.FormatStyle`：横轴刻度的宽度要拿去参与「放不放得下」的计算，
+    /// 必须保证输出长度固定（补零到两位），格式风格在不同 locale / 系统版本下
+    /// 可能悄悄变成「11/1」或「11月1日」，宽度一变整套刻度收敛逻辑就失准。
+    static func monthDayNumeric(_ date: Date) -> String {
+        let components = DayKey.calendar.dateComponents([.month, .day], from: date)
+        return String(format: "%02d-%02d", components.month ?? 0, components.day ?? 0)
+    }
+
+    /// 2026-09
+    static func yearMonthNumeric(_ date: Date) -> String {
+        let components = DayKey.calendar.dateComponents([.year, .month], from: date)
+        return String(format: "%04d-%02d", components.year ?? 0, components.month ?? 0)
+    }
+
+    /// 2026
+    static func yearNumeric(_ date: Date) -> String {
+        String(DayKey.calendar.component(.year, from: date))
+    }
 }

@@ -439,4 +439,157 @@ final class SyncEngineTests: XCTestCase {
         XCTAssertEqual(try reopened.itemCount(), 1)
         XCTAssertEqual(try reopened.fetchItems().first?.name, "旧数据")
     }
+
+    // MARK: - 分类小计的同步
+
+    private func breakdown(stock: Double, fund: Double = 0) -> [AssetCategory: Double] {
+        var result: [AssetCategory: Double] = [:]
+        for category in AssetCategory.allCases { result[category] = 0 }
+        result[.stock] = stock
+        result[.fund] = fund
+        return result
+    }
+
+    /// 3.1 旧版本写入的记录（没有 cat.* 字段）解码后必须读成「无明细」而不是崩溃或全 0
+    func testLegacySnapshotRecordHasNoCategoryDetail() throws {
+        let legacy = SyncRecord(
+            name: SyncRecord.recordName(forDayKey: "2026-10-01"),
+            kind: .snapshot,
+            updatedAt: .now,
+            isDeleted: false,
+            fields: [
+                SyncField.totalAmount: .double(10),
+                SyncField.itemCount: .int(1),
+                SyncField.recordedAt: .date(.now)
+            ]
+        )
+        XCTAssertNil(legacy.snapshotCategories, "没有明细的旧记录要读成 nil")
+
+        // 走一遍真实的编解码，确认多出来的字段不会让解码失败
+        let data = try JSONEncoder().encode(legacy)
+        let decoded = try JSONDecoder().decode(SyncRecord.self, from: data)
+        XCTAssertNil(decoded.snapshotCategories)
+
+        let withDetail = SyncRecord.snapshot(
+            dayKey: "2026-10-02",
+            totalAmount: 10,
+            itemCount: 1,
+            recordedAt: .now,
+            updatedAt: .now,
+            isDeleted: false,
+            categories: breakdown(stock: 7, fund: 3)
+        )
+        let roundTripped = try JSONDecoder().decode(SyncRecord.self, from: try JSONEncoder().encode(withDetail))
+        XCTAssertEqual(roundTripped.snapshotCategories?[.stock], 7)
+        XCTAssertEqual(roundTripped.snapshotCategories?.count, AssetCategory.allCases.count)
+    }
+
+    /// 3.2 拉回来的快照带分类时，本地必须落库；推送时也要带上
+    func testRemoteSnapshotCategoriesAreMergedAndPushed() async throws {
+        let (database, engine, transport, _) = try makeSyncedFixture()
+        let pastDay = DayKey.string(from: DayKey.calendar.date(byAdding: .day, value: -4, to: .now)!)
+
+        transport.remoteRecords = [
+            .snapshot(
+                dayKey: pastDay,
+                totalAmount: 10,
+                itemCount: 2,
+                recordedAt: .now,
+                updatedAt: .now,
+                isDeleted: false,
+                categories: breakdown(stock: 7, fund: 3)
+            )
+        ]
+
+        let outcome = try await engine.sync()
+        XCTAssertEqual(outcome.applied, 1)
+        XCTAssertNil(outcome.applyFailureSummary)
+
+        let merged = try XCTUnwrap(database.fetchSnapshots().first { $0.dayKey == pastDay })
+        XCTAssertEqual(merged.categories?[.stock], 7)
+        XCTAssertEqual(merged.categories?[.fund], 3)
+
+        // 本地改动后再推，分类明细要跟着快照一起走
+        try database.upsertSnapshot(
+            day: DayKey.startOfDay(.now),
+            totalAmount: 10,
+            itemCount: 2,
+            categories: breakdown(stock: 6, fund: 4)
+        )
+        _ = try await engine.sync()
+
+        let todayName = SyncRecord.recordName(forDayKey: DayKey.string(from: .now))
+        let pushed = try XCTUnwrap(transport.pushedRecord(named: todayName))
+        XCTAssertEqual(pushed.snapshotCategories?[.stock], 6)
+        XCTAssertEqual(pushed.snapshotCategories?[.fund], 4)
+    }
+
+    /// 3.3 分类合计与总额对不上的记录：跳过、留痕，但不阻断整轮同步
+    func testInconsistentRemoteSnapshotIsSkippedWithoutBlockingSync() async throws {
+        let (database, engine, transport, _) = try makeSyncedFixture()
+        let badDay = DayKey.string(from: DayKey.calendar.date(byAdding: .day, value: -5, to: .now)!)
+        let goodDay = DayKey.string(from: DayKey.calendar.date(byAdding: .day, value: -6, to: .now)!)
+
+        transport.remoteRecords = [
+            .snapshot(
+                dayKey: badDay,
+                totalAmount: 100,          // 总额 100
+                itemCount: 2,
+                recordedAt: .now,
+                updatedAt: .now,
+                isDeleted: false,
+                categories: breakdown(stock: 7, fund: 3)   // 分类合计只有 10
+            ),
+            .snapshot(
+                dayKey: goodDay,
+                totalAmount: 10,
+                itemCount: 2,
+                recordedAt: .now,
+                updatedAt: .now,
+                isDeleted: false,
+                categories: breakdown(stock: 10)
+            )
+        ]
+
+        let outcome = try await engine.sync()
+
+        XCTAssertNil(try database.fetchSnapshots().first { $0.dayKey == badDay },
+                     "自相矛盾的快照不能落库")
+        XCTAssertNotNil(try database.fetchSnapshots().first { $0.dayKey == goodDay },
+                        "坏记录不能挡住后面的好记录")
+        XCTAssertEqual(outcome.applied, 1)
+        XCTAssertNotNil(outcome.applyFailureSummary, "被跳过的记录要留下说明，不能静默")
+    }
+
+    /// 远端更晚的记录若没有分类明细（旧版本写的），本地的旧分类要清掉
+    func testNewerRemoteSnapshotWithoutCategoriesClearsLocalDetail() async throws {
+        let (database, engine, transport, _) = try makeSyncedFixture()
+        let dayKey = DayKey.string(from: DayKey.calendar.date(byAdding: .day, value: -7, to: .now)!)
+
+        try database.upsertSnapshot(
+            day: DayKey.date(from: dayKey)!,
+            totalAmount: 9,
+            itemCount: 1,
+            categories: breakdown(stock: 9)
+        )
+        XCTAssertEqual(try database.fetchSnapshotCategories(for: [dayKey])[dayKey]?[.stock], 9)
+        try database.markRecordsSynced([SyncRecord.recordName(forDayKey: dayKey)])
+
+        transport.remoteRecords = [
+            .snapshot(
+                dayKey: dayKey,
+                totalAmount: 12,
+                itemCount: 1,
+                recordedAt: .now,
+                updatedAt: Date(timeIntervalSince1970: Date.now.timeIntervalSince1970 + 600),
+                isDeleted: false
+            )
+        ]
+
+        _ = try await engine.sync()
+
+        let merged = try XCTUnwrap(database.fetchSnapshots().first { $0.dayKey == dayKey })
+        XCTAssertEqual(merged.totalAmount, 12, accuracy: 0.000_001)
+        XCTAssertNil(merged.categories, "更新的记录没有明细，本地的旧明细不能留着")
+    }
 }

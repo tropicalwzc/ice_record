@@ -17,6 +17,16 @@ final class AppDatabase {
     /// 数据库文件位置
     var fileURL: URL { URL(fileURLWithPath: db.path) }
 
+    /// 当前库的 schema 版本（`PRAGMA user_version`），供诊断与测试读取
+    var schemaVersion: Int {
+        (try? userVersion()) ?? 0
+    }
+
+    #if DEBUG
+    /// 仅测试使用：`fetchSnapshotCategories` 实际发出的语句条数，用来守住「不许退化成 N+1」
+    private(set) var snapshotCategoryStatementCount = 0
+    #endif
+
     init(directory: URL? = nil) throws {
         let folder = try directory ?? Self.makeDefaultDirectory()
         let url = folder.appendingPathComponent("IceRecord.sqlite", isDirectory: false)
@@ -94,6 +104,26 @@ final class AppDatabase {
         "CREATE INDEX IF NOT EXISTS idx_snapshot_dirty ON asset_snapshot(sync_dirty);"
     ]
 
+    /// v3：每日快照的分类小计。
+    ///
+    /// - 主键 `(day, category)`：一天固定 7 行（金额为 0 也写），
+    ///   这样某类别被清空后曲线能落回 0，读取时也不必向前回溯最近一次非零值。
+    /// - 不再额外建 `day` 单列索引：`(day, category)` 的最左前缀已经覆盖按 `day` 的查询，
+    ///   再加一个是纯冗余，只增加写放大。
+    /// - 不建指向 `asset_snapshot` 的外键：快照是墓碑删除（`deleted_at`），
+    ///   `ON DELETE CASCADE` 在墓碑模型下等于没写，级联由写路径显式完成。
+    /// - 不回填历史：分类明细只从本版本上线当天起积累。
+    private static let schemaV3: [String] = [
+        """
+        CREATE TABLE IF NOT EXISTS snapshot_category (
+            day       TEXT NOT NULL,
+            category  TEXT NOT NULL,
+            amount    REAL NOT NULL DEFAULT 0,
+            PRIMARY KEY (day, category)
+        );
+        """
+    ]
+
     private func migrate() throws {
         let version = try userVersion()
         if version < 1 {
@@ -111,6 +141,14 @@ final class AppDatabase {
                 }
             }
             try setUserVersion(2)
+        }
+        if version < 3 {
+            try db.transaction {
+                for statement in Self.schemaV3 {
+                    try db.execute(statement)
+                }
+            }
+            try setUserVersion(3)
         }
     }
 
@@ -234,30 +272,47 @@ final class AppDatabase {
     // MARK: - 快照的读写
 
     /// 写入/更新某个自然日的总资产（同一天只保留一条，重复记录覆盖）。
-    func upsertSnapshot(day: Date, totalAmount: Double, itemCount: Int, at moment: Date = .now) throws {
-        try db.run(
-            """
-            INSERT INTO asset_snapshot (day, total_amount, item_count, recorded_at, updated_at, deleted_at, sync_dirty)
-            VALUES (?, ?, ?, ?, ?, NULL, 1)
-            ON CONFLICT(day) DO UPDATE SET
-                total_amount = excluded.total_amount,
-                item_count   = excluded.item_count,
-                updated_at   = excluded.updated_at,
-                deleted_at   = NULL,
-                sync_dirty   = 1
-            """,
-            [
-                .text(DayKey.string(from: day)),
-                .real(totalAmount),
-                .int(itemCount),
-                .date(moment),
-                .date(moment)
-            ]
-        )
+    ///
+    /// - Parameter categories: 当日的分类小计。传 `nil` 表示这一天**没有**分类明细
+    ///   （例如分类功能上线之前的日期），此时不写分类行；传非 `nil` 时按
+    ///   「先删后插」整体覆盖，7 个类别无论金额是否为 0 都会写入。
+    func upsertSnapshot(
+        day: Date,
+        totalAmount: Double,
+        itemCount: Int,
+        categories: [AssetCategory: Double]? = nil,
+        at moment: Date = .now
+    ) throws {
+        let dayKey = DayKey.string(from: day)
+        try db.transaction {
+            try db.run(
+                """
+                INSERT INTO asset_snapshot (day, total_amount, item_count, recorded_at, updated_at, deleted_at, sync_dirty)
+                VALUES (?, ?, ?, ?, ?, NULL, 1)
+                ON CONFLICT(day) DO UPDATE SET
+                    total_amount = excluded.total_amount,
+                    item_count   = excluded.item_count,
+                    updated_at   = excluded.updated_at,
+                    deleted_at   = NULL,
+                    sync_dirty   = 1
+                """,
+                [
+                    .text(dayKey),
+                    .real(totalAmount),
+                    .int(itemCount),
+                    .date(moment),
+                    .date(moment)
+                ]
+            )
+            // 分类小计与总额必须在同一事务里落地，读的时候不可能出现一新一旧
+            if let categories {
+                try replaceSnapshotCategories(dayKey: dayKey, categories: categories)
+            }
+        }
     }
 
     func fetchSnapshots() throws -> [AssetSnapshot] {
-        try db.query(
+        let snapshots = try db.query(
             """
             SELECT id, day, total_amount, item_count, recorded_at, updated_at
             FROM asset_snapshot
@@ -274,6 +329,16 @@ final class AppDatabase {
                 recordedAt: row.date(4),
                 updatedAt: row.date(5)
             )
+        }
+
+        // 分类小计一次性批量取回再挂上去，避免逐日查询退化成 N+1
+        let categories = try fetchSnapshotCategories(for: snapshots.map(\.dayKey))
+        guard !categories.isEmpty else { return snapshots }
+
+        return snapshots.map { snapshot in
+            var copy = snapshot
+            copy.categories = categories[snapshot.dayKey]
+            return copy
         }
     }
 
@@ -312,18 +377,89 @@ final class AppDatabase {
         try db.scalar("SELECT COUNT(*) FROM asset_snapshot WHERE deleted_at IS NULL;") { $0.int(0) } ?? 0
     }
 
+    // MARK: - 分类小计的读写
+
+    /// 一次查出若干天的分类小计，按 `dayKey` 分组返回。
+    ///
+    /// 给整段历史挂分类时逐日查会退化成 N+1，所以走 `IN (...)` 批量取；
+    /// 单条语句的参数个数有上限（老版本 SQLite 只有 999），超过就分批，
+    /// 小数据量下仍然是**一次**查询。
+    func fetchSnapshotCategories(for dayKeys: [String]) throws -> [String: [AssetCategory: Double]] {
+        guard !dayKeys.isEmpty else { return [:] }
+
+        let chunkSize = 500
+        var result: [String: [AssetCategory: Double]] = [:]
+        var index = 0
+
+        while index < dayKeys.count {
+            let chunk = Array(dayKeys[index..<min(index + chunkSize, dayKeys.count)])
+            index += chunkSize
+
+            #if DEBUG
+            snapshotCategoryStatementCount += 1
+            #endif
+
+            let placeholders = Array(repeating: "?", count: chunk.count).joined(separator: ", ")
+            let rows = try db.query(
+                """
+                SELECT day, category, amount
+                FROM snapshot_category
+                WHERE day IN (\(placeholders))
+                ORDER BY day ASC
+                """,
+                chunk.map { SQLValue.text($0) }
+            ) { row in
+                (day: row.text(0), category: AssetCategory(rawValue: row.text(1)), amount: row.double(2))
+            }
+
+            for row in rows {
+                guard let category = row.category else { continue }
+                result[row.day, default: [:]][category] = row.amount
+            }
+        }
+
+        return result
+    }
+
+    /// 整体覆盖某一天的分类小计（先删后插，与快照同事务）。
+    ///
+    /// 用 DELETE + INSERT 而不是逐行 UPSERT：类别集合将来可能增减，
+    /// upsert 会把「这次不该存在的旧类别」留在表里。
+    func replaceSnapshotCategories(dayKey: String, categories: [AssetCategory: Double]) throws {
+        try db.run("DELETE FROM snapshot_category WHERE day = ?", [.text(dayKey)])
+        for category in AssetCategory.allCases {
+            try db.run(
+                "INSERT INTO snapshot_category (day, category, amount) VALUES (?, ?, ?)",
+                [.text(dayKey), .text(category.rawValue), .real(categories[category] ?? 0)]
+            )
+        }
+    }
+
+    func snapshotCategoryRowCount() throws -> Int {
+        try db.scalar("SELECT COUNT(*) FROM snapshot_category;") { $0.int(0) } ?? 0
+    }
+
     func deleteSnapshot(day: Date, at moment: Date = .now) throws {
-        try db.run(
-            "UPDATE asset_snapshot SET deleted_at = ?, updated_at = ?, sync_dirty = 1 WHERE day = ?",
-            [.date(moment), .date(moment), .text(DayKey.string(from: day))]
-        )
+        let dayKey = DayKey.string(from: day)
+        try db.transaction {
+            try db.run(
+                "UPDATE asset_snapshot SET deleted_at = ?, updated_at = ?, sync_dirty = 1 WHERE day = ?",
+                [.date(moment), .date(moment), .text(dayKey)]
+            )
+            try db.run("DELETE FROM snapshot_category WHERE day = ?", [.text(dayKey)])
+        }
     }
 
     func deleteAllSnapshots(at moment: Date = .now) throws {
-        try db.run(
-            "UPDATE asset_snapshot SET deleted_at = ?, updated_at = ?, sync_dirty = 1 WHERE deleted_at IS NULL",
-            [.date(moment), .date(moment)]
-        )
+        try db.transaction {
+            try db.run(
+                "UPDATE asset_snapshot SET deleted_at = ?, updated_at = ?, sync_dirty = 1 WHERE deleted_at IS NULL",
+                [.date(moment), .date(moment)]
+            )
+            // 快照是墓碑删除，分类行没有自己墓碑，必须跟着一起清；
+            // 否则会留下一堆指向已删除日期的无主分类记录。
+            try db.run("DELETE FROM snapshot_category", [])
+        }
     }
 
     // MARK: - 元数据
@@ -382,6 +518,20 @@ final class AppDatabase {
                     """,
                     [.text(DayKey.string(from: day)), .real(total), .int(2), .date(day), .date(day)]
                 )
+
+                // 演示数据也必须带分类明细，否则 --seed-demo-history 下复合视图永远是空的，
+                // 没法验收柱状图与幅度列表。拆分比例固定，保证 7 类之和严格等于总额。
+                let stock = (total * 0.6 * 100).rounded() / 100
+                let fund = (total * 0.2 * 100).rounded() / 100
+                let cash = (total * 0.15 * 100).rounded() / 100
+                let other = ((total - stock - fund - cash) * 100).rounded() / 100
+                var categories: [AssetCategory: Double] = [:]
+                for category in AssetCategory.allCases { categories[category] = 0 }
+                categories[.stock] = stock
+                categories[.fund] = fund
+                categories[.cash] = cash
+                categories[.other] = other
+                try replaceSnapshotCategories(dayKey: DayKey.string(from: day), categories: categories)
             }
         }
         try setMetaValue(Self.demoFlagKey, "1")
@@ -415,21 +565,36 @@ final class AppDatabase {
             )
         }
 
-        let snapshots: [SyncRecord] = try db.query(
+        let snapshotRows = try db.query(
             """
             SELECT day, total_amount, item_count, recorded_at, updated_at, deleted_at
             FROM asset_snapshot
             WHERE sync_dirty = 1
             """
         ) { row in
-            let deletedAt = row.isNull(5) ? nil : row.date(5)
-            return SyncRecord.snapshot(
+            (
                 dayKey: row.text(0),
                 totalAmount: row.double(1),
                 itemCount: row.int(2),
                 recordedAt: row.date(3),
                 updatedAt: row.date(4),
-                isDeleted: deletedAt != nil
+                isDeleted: !row.isNull(5)
+            )
+        }
+
+        // 分类小计跟着当天的快照一起走，不单独成记录：两者的生命周期完全一致，
+        // 拆开会让推送 / 拉取 / 冲突处理的路径翻倍，还会出现「总额来自 A 设备、
+        // 分类来自 B 设备」的错配。
+        let categories = try fetchSnapshotCategories(for: snapshotRows.map(\.dayKey))
+        let snapshots: [SyncRecord] = snapshotRows.map { row in
+            SyncRecord.snapshot(
+                dayKey: row.dayKey,
+                totalAmount: row.totalAmount,
+                itemCount: row.itemCount,
+                recordedAt: row.recordedAt,
+                updatedAt: row.updatedAt,
+                isDeleted: row.isDeleted,
+                categories: categories[row.dayKey]
             )
         }
 
@@ -533,45 +698,63 @@ final class AppDatabase {
     private func applyRemoteSnapshot(_ record: SyncRecord) throws -> Bool {
         guard let dayKey = record.dayKey else { throw SyncError.malformedRecord(record.name) }
 
+        let categories = record.snapshotCategories
+        if !record.isDeleted, let categories {
+            let total = record.double(SyncField.totalAmount) ?? 0
+            let sum = categories.values.reduce(0, +)
+            // 容差 0.01 万（100 元）：四舍五入与浮点累加的正常误差。
+            // 超过它说明这条记录自己就自相矛盾，宁可跳过并留下记录，也不照抄。
+            if abs(sum - total) > 0.01 {
+                SyncLog.error("云端快照 \(dayKey) 的分类合计 \(sum) 与总额 \(total) 不一致，跳过")
+                throw SyncError.inconsistentSnapshot(dayKey: dayKey, total: total, categorySum: sum)
+            }
+        }
+
         let localUpdatedAt = try db.scalar(
             "SELECT updated_at FROM asset_snapshot WHERE day = ?",
             [.text(dayKey)]
         ) { $0.date(0) }
 
         guard let localUpdatedAt else {
-            try db.run(
-                """
-                INSERT INTO asset_snapshot (day, total_amount, item_count, recorded_at, updated_at, deleted_at, sync_dirty)
-                VALUES (?, ?, ?, ?, ?, ?, 0)
-                """,
-                [
-                    .text(dayKey),
-                    .real(record.double(SyncField.totalAmount) ?? 0),
-                    .int(record.int(SyncField.itemCount) ?? 0),
-                    .date(record.date(SyncField.recordedAt) ?? record.updatedAt),
-                    .date(record.updatedAt),
-                    record.isDeleted ? .date(record.updatedAt) : .null
-                ]
-            )
+            try db.transaction {
+                try db.run(
+                    """
+                    INSERT INTO asset_snapshot (day, total_amount, item_count, recorded_at, updated_at, deleted_at, sync_dirty)
+                    VALUES (?, ?, ?, ?, ?, ?, 0)
+                    """,
+                    [
+                        .text(dayKey),
+                        .real(record.double(SyncField.totalAmount) ?? 0),
+                        .int(record.int(SyncField.itemCount) ?? 0),
+                        .date(record.date(SyncField.recordedAt) ?? record.updatedAt),
+                        .date(record.updatedAt),
+                        record.isDeleted ? .date(record.updatedAt) : .null
+                    ]
+                )
+                try mirrorRemoteCategories(dayKey: dayKey, categories: categories)
+            }
             return true
         }
 
         if record.updatedAt > localUpdatedAt {
-            try db.run(
-                """
-                UPDATE asset_snapshot
-                SET total_amount = ?, item_count = ?, recorded_at = ?, updated_at = ?, deleted_at = ?, sync_dirty = 0
-                WHERE day = ?
-                """,
-                [
-                    .real(record.double(SyncField.totalAmount) ?? 0),
-                    .int(record.int(SyncField.itemCount) ?? 0),
-                    .date(record.date(SyncField.recordedAt) ?? record.updatedAt),
-                    .date(record.updatedAt),
-                    record.isDeleted ? .date(record.updatedAt) : .null,
-                    .text(dayKey)
-                ]
-            )
+            try db.transaction {
+                try db.run(
+                    """
+                    UPDATE asset_snapshot
+                    SET total_amount = ?, item_count = ?, recorded_at = ?, updated_at = ?, deleted_at = ?, sync_dirty = 0
+                    WHERE day = ?
+                    """,
+                    [
+                        .real(record.double(SyncField.totalAmount) ?? 0),
+                        .int(record.int(SyncField.itemCount) ?? 0),
+                        .date(record.date(SyncField.recordedAt) ?? record.updatedAt),
+                        .date(record.updatedAt),
+                        record.isDeleted ? .date(record.updatedAt) : .null,
+                        .text(dayKey)
+                    ]
+                )
+                try mirrorRemoteCategories(dayKey: dayKey, categories: categories)
+            }
             return true
         }
 
@@ -582,6 +765,18 @@ final class AppDatabase {
 
         try db.run("UPDATE asset_snapshot SET sync_dirty = 0 WHERE day = ?", [.text(dayKey)])
         return false
+    }
+
+    /// 把远端带来的分类明细落到本地：有明细就整体覆盖，没有就清空。
+    ///
+    /// 「没有」要清空而不是留着旧值：一条更新的记录若是旧版本客户端写的（不认识分类字段），
+    /// 它才是这一天的最新事实，留着本地的旧分类会让总额与分类长期对不上。
+    private func mirrorRemoteCategories(dayKey: String, categories: [AssetCategory: Double]?) throws {
+        if let categories {
+            try replaceSnapshotCategories(dayKey: dayKey, categories: categories)
+        } else {
+            try db.run("DELETE FROM snapshot_category WHERE day = ?", [.text(dayKey)])
+        }
     }
 
     // MARK: 同步游标 / 开关

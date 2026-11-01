@@ -61,6 +61,14 @@ final class AssetStore {
 
     var isTodayRecorded: Bool { todaySnapshot != nil }
 
+    /// 最早一条**带分类明细**的快照日期；一条都没有时为 `nil`。
+    ///
+    /// 分类明细只能从本版本上线当天开始积累，更早的日期只有总额。
+    /// 界面用它来把「为什么分类曲线比总资产短」说清楚，而不是画一条 0 值曲线冒充历史。
+    var categoryTrackingStartDay: Date? {
+        snapshots.first { $0.categories != nil }?.day
+    }
+
     /// 按类别汇总（用于占比展示）
     var categoryTotals: [(category: AssetCategory, amount: Double)] {
         Dictionary(grouping: items, by: \.category)
@@ -211,8 +219,24 @@ final class AssetStore {
         try database.upsertSnapshot(
             day: DayKey.startOfDay(.now),
             totalAmount: totalAmount,
-            itemCount: items.count
+            itemCount: items.count,
+            categories: categoryBreakdown
         )
+    }
+
+    /// 当前条目按类别汇总。
+    ///
+    /// 刻意返回**全部 7 个类别**（没有条目的类别为 `0`），而不是只返回非零项：
+    /// 这样某类别被清空后，当天的曲线能直接落回 0，读取时也不必向前回溯最近一次非零值。
+    private var categoryBreakdown: [AssetCategory: Double] {
+        var result: [AssetCategory: Double] = [:]
+        for category in AssetCategory.allCases {
+            result[category] = 0
+        }
+        for item in items {
+            result[item.category, default: 0] += item.amount
+        }
+        return result
     }
 }
 

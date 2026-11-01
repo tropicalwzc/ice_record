@@ -141,7 +141,7 @@ final class SyncCoordinator {
                     return SyncAttempt.notConfigured(reason)
                 case .accountUnavailable(let reason):
                     return SyncAttempt.accountUnavailable(reason)
-                case .transport, .malformedRecord:
+                case .transport, .malformedRecord, .inconsistentSnapshot:
                     return SyncAttempt.failed(error.localizedDescription)
                 }
             } catch {
@@ -155,7 +155,9 @@ final class SyncCoordinator {
         case .success(let outcome):
             lastSyncDate = engine.lastSyncDate
             lastErrorMessage = nil
-            lastWarningMessage = outcome.pushFailureSummary
+            // 推上去被拒的、拉下来被跳过的，都要让用户看见，不能只在日志里
+            let warnings = [outcome.pushFailureSummary, outcome.applyFailureSummary].compactMap { $0 }
+            lastWarningMessage = warnings.isEmpty ? nil : warnings.joined(separator: "\n")
             status = .idle
             if outcome.didChangeLocalData {
                 onRemoteChanges?()

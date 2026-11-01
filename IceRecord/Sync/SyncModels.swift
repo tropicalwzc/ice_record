@@ -26,6 +26,17 @@ enum SyncField {
     static let totalAmount = "totalAmount"
     static let itemCount = "itemCount"
     static let recordedAt = "recordedAt"
+
+    /// 分类小计的字段前缀：一个类别一个字段（`cat.stock`）。
+    ///
+    /// 不把 7 个金额塞进一个复合值：`SyncValue` 的类型标记是与旧版本共享的全局契约，
+    /// 新增一种类型标记会让**旧客户端解码整条记录时直接失败**；
+    /// 而多出来的普通键对旧客户端只是「不认识的字段」，会被安全忽略。
+    static let categoryPrefix = "cat."
+
+    static func category(_ category: AssetCategory) -> String {
+        categoryPrefix + category.rawValue
+    }
 }
 
 /// 与云端交换的一条记录。
@@ -93,6 +104,21 @@ struct SyncRecord: Equatable, Sendable, Codable {
     func date(_ key: String) -> Date? {
         if case .date(let value)? = fields[key] { return value }
         return nil
+    }
+
+    /// 快照记录里的分类小计。
+    ///
+    /// 只要存在**任何一个** `cat.*` 字段，就说明这一天有分类明细；一个都没有返回 `nil`
+    /// （旧版本客户端写入的记录）。没有明细与「7 个类别全为 0」是两回事。
+    var snapshotCategories: [AssetCategory: Double]? {
+        var result: [AssetCategory: Double] = [:]
+        for (key, value) in fields where key.hasPrefix(SyncField.categoryPrefix) {
+            guard case .double(let amount) = value else { continue }
+            let raw = String(key.dropFirst(SyncField.categoryPrefix.count))
+            guard let category = AssetCategory(rawValue: raw) else { continue }
+            result[category] = amount
+        }
+        return result.isEmpty ? nil : result
     }
 }
 
@@ -185,18 +211,27 @@ extension SyncRecord {
         itemCount: Int,
         recordedAt: Date,
         updatedAt: Date,
-        isDeleted: Bool
+        isDeleted: Bool,
+        categories: [AssetCategory: Double]? = nil
     ) -> SyncRecord {
-        SyncRecord(
+        var fields: [String: SyncValue] = [
+            SyncField.totalAmount: .double(totalAmount),
+            SyncField.itemCount: .int(itemCount),
+            SyncField.recordedAt: .date(recordedAt)
+        ]
+        // 有明细就写全 7 个类别（含 0），让「有明细」这件事在记录里可判别；
+        // 没有明细（分类上线前的日期）就一个都不写。
+        if let categories {
+            for category in AssetCategory.allCases {
+                fields[SyncField.category(category)] = .double(categories[category] ?? 0)
+            }
+        }
+        return SyncRecord(
             name: recordName(forDayKey: dayKey),
             kind: .snapshot,
             updatedAt: updatedAt,
             isDeleted: isDeleted,
-            fields: [
-                SyncField.totalAmount: .double(totalAmount),
-                SyncField.itemCount: .int(itemCount),
-                SyncField.recordedAt: .date(recordedAt)
-            ]
+            fields: fields
         )
     }
 }
@@ -210,6 +245,9 @@ enum SyncError: LocalizedError {
     case accountUnavailable(String)
     case transport(String)
     case malformedRecord(String)
+    /// 远端快照的分类小计之和与它自己的总额对不上。
+    /// 宁可跳过这一条并留下记录，也不把一份自相矛盾的数据抄进本地。
+    case inconsistentSnapshot(dayKey: String, total: Double, categorySum: Double)
 
     var errorDescription: String? {
         switch self {
@@ -221,6 +259,8 @@ enum SyncError: LocalizedError {
             "iCloud 同步失败\n\(message)"
         case .malformedRecord(let name):
             "无法解析云端记录：\(name)"
+        case .inconsistentSnapshot(let dayKey, let total, let categorySum):
+            "云端快照自相矛盾（\(dayKey)：总额 \(total)，分类合计 \(categorySum)），已跳过该条"
         }
     }
 }
